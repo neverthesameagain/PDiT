@@ -1,7 +1,7 @@
-import torch #type:ignore
-import torch.nn as nn #type:ignore
-import torch.nn.functional as F #type:ignore
-from transformers import CLIPModel, CLIPProcessor #type:ignore
+import torch 
+import torch.nn as nn 
+import torch.nn.functional as F 
+from transformers import CLIPModel, CLIPProcessor 
 
 class Patch_State(nn.Module):
 
@@ -35,7 +35,7 @@ class Patch_State(nn.Module):
             del image_inputs
         else:            
             images = images.reshape(bsz, seq_len, -1, images.size(-1)).permute([0, 1, 3, 2])
-            vision_outputs = self.embed_image(images)        
+            vision_outputs = self.embed_image(images)
         
         prompt_inputs = self.processor(text=prompt[0], return_tensors="pt", padding=True).to(self.config['device'])        
         with torch.no_grad():
@@ -154,7 +154,7 @@ class PerceptionTransformer(nn.Module):
         x = self.block(x, attention_mask)
     
         x = x.reshape(bsz, seq_len, -1, self.emd_dim).permute(0, 2, 1, 3)
-        state_embeddings = torch.gather(x, 1, valid_ind).squeeze().unsqueeze(0) # shall I unsqueeze it or let it be like that????
+        state_embeddings = torch.gather(x, 1, valid_ind).squeeze()#.unsqueeze(0) # shall I unsqueeze it or let it be like that????
         
         return state_embeddings, x.permute(0, 2, 1, 3)
     
