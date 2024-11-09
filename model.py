@@ -1,7 +1,7 @@
-import torch 
-import torch.nn as nn 
-import torch.nn.functional as F 
-from transformers import CLIPModel, CLIPProcessor 
+import torch #type:ignore
+import torch.nn as nn #type:ignore
+import torch.nn.functional as F #type:ignore
+from transformers import CLIPModel, CLIPProcessor #type:ignore
 
 class Patch_State(nn.Module):
 
@@ -17,8 +17,9 @@ class Patch_State(nn.Module):
         self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
         self.proj = nn.Linear(768, self.config['emd_dim'])
         self.embed_image = nn.Linear(49, 768)
+        self.embed_prompt = torch.nn.Embedding(self.config['text_max_size'], config['emd_dim'])
         self.projtext = nn.Linear(512, self.config['emd_dim'])
-
+        
     def forward(self, images, prompt):
         
         #images are of shape (bsz, seq_len, 224, 224, 3) / ((bsz, seq_len, 7, 7, 3))
@@ -32,28 +33,28 @@ class Patch_State(nn.Module):
             images = images.reshape(bsz * seq_len, 224, 224, 3)
             image_inputs = self.processor(images=images, return_tensors="pt").to(self.config['device'])
             vision_outputs = self.model.vision_model(**image_inputs).last_hidden_state
-            del image_inputs
-        else:            
-            images = images.reshape(bsz, seq_len, -1, images.size(-1)).permute([0, 1, 3, 2])
-            vision_outputs = self.embed_image(images)
-        
-        prompt_inputs = self.processor(text=prompt[0], return_tensors="pt", padding=True).to(self.config['device'])        
-        with torch.no_grad():
-            text_outputs = self.model.text_model(**prompt_inputs).last_hidden_state
-        
-        del prompt_inputs
-        
-        vision_outputs = self.proj(vision_outputs)
-        if self.config['emd_dim'] != 512:
+            prompt_inputs = self.processor(text=prompt[0], return_tensors="pt", padding=True).to(self.config['device'])        
+            with torch.no_grad():
+                text_outputs = self.model.text_model(**prompt_inputs).last_hidden_state
+            
             text_outputs = self.projtext(text_outputs)
+            prompt_embds = text_outputs.unsqueeze(1).repeat(1, seq_len, 1, 1)
+            del image_inputs
+            del prompt_inputs
+            
+        else:  
+                      
+            images = images.reshape(bsz, seq_len, -1, images.size(-1)).permute([0, 1, 3, 2])
+            vision_outputs = self.embed_image(images)        
+            prompt_embds = self.embed_prompt(prompt)
+                
+        vision_outputs = self.proj(vision_outputs)
         
         image_embds = vision_outputs.reshape(bsz, seq_len, -1, self.config['emd_dim'])
-        prompt_embds = text_outputs.unsqueeze(1).repeat(1, seq_len, 1, 1)
         
         # Assuming prompt_embds has shape (bsz, seq_len, num_tokens, emd_dim)
-        prompt_mask = torch.stack([torch.cat([torch.ones(emb.shape[0], emb.shape[1]), torch.zeros(emb.shape[0], self.max_len - emb.shape[1])], dim=1)for emb in prompt_embds]).to(self.config['device'])
         prompt_embds = torch.stack([torch.cat([emb, torch.zeros(emb.shape[0], self.max_len - emb.shape[1], self.emd_dim).to(self.config['device'])], dim=1)for emb in prompt_embds])            
-        
+
         # Assuming prompt_embds has shape (bsz, seq_len, num_tokens, emd_dim)
         state_embds = torch.cat([image_embds, prompt_embds], axis=2)
         
@@ -61,7 +62,7 @@ class Patch_State(nn.Module):
         # pos_emd is of shape (num_tokens, emd_dim)
         state_embds += self.pos_emd
  
-        return state_embds, prompt_mask
+        return state_embds
     
 class Patch_RA(nn.Module):
     
@@ -154,7 +155,7 @@ class PerceptionTransformer(nn.Module):
         x = self.block(x, attention_mask)
     
         x = x.reshape(bsz, seq_len, -1, self.emd_dim).permute(0, 2, 1, 3)
-        state_embeddings = torch.gather(x, 1, valid_ind).squeeze()#.unsqueeze(0) # shall I unsqueeze it or let it be like that????
+        state_embeddings = torch.gather(x, 1, valid_ind).squeeze().unsqueeze(0) # remove after testing and ffs use bsz = 2
         
         return state_embeddings, x.permute(0, 2, 1, 3)
     
@@ -228,16 +229,16 @@ class CPDIT(nn.Module):
         
         causal_mask = torch.tril(torch.ones(seq_len * 3, seq_len * 3)).to(self.config['device'])
         
-        attention_mask = attention_mask * causal_mask
+        attention_mask = attention_mask * causal_mask # not sure about this
         
         return attention_mask, attention_mask_state
     
-    def forward(self, images, prompt, actions, Gt, timesteps, mask, target=None):
+    def forward(self, images, prompt, prompt_mask, actions, Gt, timesteps, mask, target=None):
         
         time_embds = self.embed_timestep(timesteps)
         
         R_embds, actions_embds = self.patch_actions_rewards(Gt, actions, time_embds)
-        obs, prompt_mask = self.patch_state(images, prompt)        
+        obs = self.patch_state(images, prompt)        
         attention_mask, attention_mask_state = self.create_mask(prompt_mask, mask)
         
         filler = torch.ones_like(prompt_mask[:,:,0]).unsqueeze(-1).repeat(1, 1, self.config['img_tokens'])
