@@ -1,6 +1,6 @@
 # PDiT: Perception and Decision Transformer (Interleaved)
 
-This is implementation of PDiT based agents as mentioned in the [paper](). Here for enhanced decision-making, we utilize Perception Transformers alongside Decision-Making Transformers. By interleaving Perception and Decision Transformers, PDiT optimizes decision-making in complex environments. 
+This is implementation of PDiT based agents as mentioned in the [paper](https://arxiv.org/pdf/2312.15863). Here for enhanced decision-making, we utilize Perception Transformers alongside Decision-Making Transformers. By interleaving Perception and Decision Transformers, PDiT optimizes decision-making in complex environments. 
 
 ### Overview
 PDiT focuses on environments where actions are taken based on image inputs and text prompts. Specifically, we explore scenarios where image-based environments require actions determined by text prompts, which traditionally lack direct correlation between text commands and image data. PDiT aims to improve this interaction by enabling more efficient perception and decision processes.
@@ -46,6 +46,6 @@ The demo links can be found [here]().
 ## Weights 
 
 The weights for PPO based training method are [here]().
-The weights for RvS based training method are [here]().
+The weights for RvS based training method are [here](https://drive.google.com/file/d/1SuaFt6Vcn9HssXNBqdkZkt8WebpfGkfm/view?usp=sharing).
 
 ---
