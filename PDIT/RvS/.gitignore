@@ -1,0 +1,5 @@
+babyai
+env
+test*
+__pycache__
+weight*
