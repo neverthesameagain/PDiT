@@ -13,10 +13,10 @@ We are using the **MiniGrid BabyAI** dataset for training and evaluation. This d
 
 Dataset URL: [MiniGrid BabyAI](https://minigrid.farama.org/environments/babyai/)
 
-## Installation Steps
+## Visualising The model
 
-1. **Set Up the Environment**:
-   - Install Python (ensure Python 3.7+).
+For PDiT using Supervised Learning:
+1.  **Set Up the Environment**:
    - Create a virtual environment for PDiT:
      ```bash
      python3 -m venv pd_environment
@@ -36,6 +36,18 @@ Dataset URL: [MiniGrid BabyAI](https://minigrid.farama.org/environments/babyai/)
      ```bash
      pip install -r requirements.txt
      ```
+3.Download Weights from the source and change paths in the visualiser script.
+4. Run the visualiser file
+
+For the PPO / PPO Based PDiT:
+1. Have the necessary Requirements installed.
+  **Install Required Packages**:
+   - Use the `requirements.txt` file to install dependencies:
+     ```bash
+     pip install -r requirements.txt
+     ```
+3. Download the weights from Source and change paths in the visualiser script.
+4. Run the visualiser.
 
 ---
 
