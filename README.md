@@ -57,7 +57,7 @@ The demo links can be found [here](https://drive.google.com/drive/folders/1Nfjoq
 
 ## Weights 
 
-The weights for PPO based training method are [here]().
+The weights for PPO based training method are [here](https://drive.google.com/file/d/1SuaFt6Vcn9HssXNBqdkZkt8WebpfGkfm/view?usp=sharing).
 The weights for RvS based training method are [here](https://drive.google.com/file/d/1SuaFt6Vcn9HssXNBqdkZkt8WebpfGkfm/view?usp=sharing).
 
 ---
