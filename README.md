@@ -53,7 +53,7 @@ For the PPO / PPO Based PDiT:
 
 ## Video Demos
 
-The demo links can be found [here]().
+The demo links can be found [here](https://drive.google.com/drive/folders/1NfjoqmO8XftOXk93ENfxUmFo7S9q1p1n?usp=sharing).
 
 ## Weights 
 
